@@ -8,7 +8,6 @@ import { UpdatedBookDto } from './dto/updated-book.dto';
 @Injectable()
 export class BooksService {
     constructor (@InjectRepository(Book) private bookRepository: Repository<Book> ) {}
-
     async createBook (book: CreatedBookDto) {
         const bookFount = await this.bookRepository.findOne({
             where: {
@@ -21,13 +20,11 @@ export class BooksService {
         const newBook = this.bookRepository.create(book)
         return this.bookRepository.save(newBook)
     }
-
-    async getBooks() {
+    getBooks() {
         return this.bookRepository.find()
     }
-
-    getBook(id: number) {
-        const bookFount =  this.bookRepository.findOne({
+    async getBook(id: number) {
+        const bookFount = await  this.bookRepository.findOne({
             where: {
                 id
             }
@@ -37,8 +34,16 @@ export class BooksService {
         }
         return bookFount
     }
-
-    updateBook(id: number, book: UpdatedBookDto) {
-        return this.bookRepository.update({ id }, book)
+    async updateBook(id: number, book: UpdatedBookDto) {
+        const bookFount = await this.bookRepository.findOne({
+            where: {
+                id
+            }
+        })
+        if (!bookFount) {
+            return new HttpException('Libro no encontrado', HttpStatus.NOT_FOUND)
+        }
+        const updatedBook = Object.assign(bookFount, book)
+        return this.bookRepository.save(updatedBook)
     }
 }
