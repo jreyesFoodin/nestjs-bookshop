@@ -46,4 +46,7 @@ export class BooksService {
         const updatedBook = Object.assign(bookFount, book)
         return this.bookRepository.save(updatedBook)
     }
+    deleteBook (id: number) {
+        return this.bookRepository.delete({ id })
+    }
 }
