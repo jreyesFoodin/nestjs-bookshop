@@ -11,7 +11,7 @@ export class BooksController {
     constructor(private booksServices: BooksService) {}
 
     @Get()
-    getBooks(): Promise<Book[]> {
+    getBooks() {
         return this.booksServices.getBooks()
     }
 

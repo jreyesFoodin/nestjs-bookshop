@@ -3,4 +3,5 @@ export class UpdatedBookDto {
     descriptionBook?: string
     stock?: number
     active?: boolean
+    urlImg?: string
 }

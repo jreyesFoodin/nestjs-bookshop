@@ -17,6 +17,9 @@ export class Book {
     @Column()
     stock: number
 
+    @Column()
+    urlImg: string
+
     @Column({ default: true })
     active: boolean
 }

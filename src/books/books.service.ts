@@ -8,45 +8,65 @@ import { UpdatedBookDto } from './dto/updated-book.dto';
 @Injectable()
 export class BooksService {
     constructor (@InjectRepository(Book) private bookRepository: Repository<Book> ) {}
-    async createBook (book: CreatedBookDto) {
-        const bookFount = await this.bookRepository.findOne({
-            where: {
-                nameBook: book.nameBook
-            }
-        })
-        if (bookFount) {
-            return new HttpException('Libro ya registrado', HttpStatus.CONFLICT)
-        }
-        const newBook = this.bookRepository.create(book)
-        return this.bookRepository.save(newBook)
-    }
-    getBooks() {
-        return this.bookRepository.find()
-    }
-    async getBook(id: number) {
-        const bookFount = await  this.bookRepository.findOne({
-            where: {
-                id
-            }
-        })
-        if (!bookFount) {
-            return new HttpException('Libro no encontrado', HttpStatus.NOT_FOUND)
-        }
+    async findBookInTable (obj: object) {
+        const bookFount = await  this.bookRepository.findOne({ where: obj })
         return bookFount
     }
-    async updateBook(id: number, book: UpdatedBookDto) {
-        const bookFount = await this.bookRepository.findOne({
-            where: {
-                id
+    async createBook (book: CreatedBookDto) {
+        try {
+            const bookFount = await this.findBookInTable({ nameBook: book.nameBook })
+            if (bookFount) {
+                throw new HttpException('Libro ya registrado', HttpStatus.CONFLICT)
             }
-        })
-        if (!bookFount) {
-            return new HttpException('Libro no encontrado', HttpStatus.NOT_FOUND)
+            const newBook = this.bookRepository.create(book)
+            const savedBook = await this.bookRepository.save(newBook)
+            return { success: true, data: savedBook, message: 'Se agrego el Libro correctamente' }
+        } catch (error) {
+            throw  error
         }
-        const updatedBook = Object.assign(bookFount, book)
-        return this.bookRepository.save(updatedBook)
     }
-    deleteBook (id: number) {
-        return this.bookRepository.delete({ id })
+    async getBooks() {
+        try {
+            const findBooks = await this.bookRepository.find()
+            return { success: true, data: findBooks }
+        } catch (error) {
+            throw  new HttpException(error.message, HttpStatus.FOUND)
+        }
+    }
+    async getBook(id: number) {
+        try {
+            const bookFount = await  this.findBookInTable({ id })
+            if (!bookFount) {
+                throw new HttpException('Libro no encontrado', HttpStatus.NOT_FOUND)
+            }
+            return { success: true, data: bookFount }
+        } catch (error) {
+            throw  error
+        }
+    }
+    async updateBook(id: number, book: UpdatedBookDto) {
+        try {
+            const bookFount = await this.findBookInTable({ id })
+            if (!bookFount) {
+                throw new HttpException('Libro no encontrado', HttpStatus.NOT_FOUND)
+            }
+            const updatedBook = Object.assign(bookFount, book)
+            const handledUpdated = this.bookRepository.save(updatedBook)
+            return { success: true, data: handledUpdated, message: 'Se actulizo la informacion correctamente' }
+        } catch (error) {
+            throw error
+        }
+    }
+    async deleteBook (id: number) {
+        try {
+            const bookToDelete = await this.findBookInTable({ id })
+            if (!bookToDelete) {
+                throw new HttpException('Libro no encontrado', HttpStatus.NOT_FOUND);
+            }
+            const removeBook = await this.bookRepository.delete({ id })
+            return { success: true, data: removeBook, message: 'El libro fue removido correctamente' }
+        } catch (error) {
+            throw  error
+        }
     }
 }
